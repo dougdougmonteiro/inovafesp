@@ -1,0 +1,3 @@
+# Conteudo interno da Unimed Fesp - nao indexar
+User-agent: *
+Disallow: /
