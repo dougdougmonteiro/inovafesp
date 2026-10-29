@@ -58,7 +58,7 @@
   }
   .login-overlay.hidden { display:none; }
   .login-card {
-    background:var(--white); border-radius:20px; max-width:420px; width:100%;
+    background:var(--white); border-radius:20px; max-width:460px; width:100%;
     padding:40px 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align:center;
     animation: fadeInUp 0.6s ease;
     margin:auto 0; flex-shrink:0;
@@ -82,6 +82,37 @@
   }
   .login-field input:focus { border-color:var(--cor-experiencia); }
   .login-field .hint { font-size:16px; color:var(--text-light); margin-top:3px; }
+  /* v15 — campo de e-mail: colaborador digita só o prefixo; o domínio fica fixo */
+  .email-group {
+    display:flex; align-items:stretch; width:100%;
+    border:2px solid #e0e0e0; border-radius:10px; overflow:hidden; background:#fff;
+    transition:border-color 0.2s;
+  }
+  .email-group:focus-within { border-color:var(--cor-experiencia); }
+  .login-field .email-group input {
+    flex:1 1 auto; min-width:0; border:none; border-radius:0; padding:12px 6px 12px 14px; font-size:19px;
+  }
+  .email-suffix {
+    flex:0 0 auto; display:flex; align-items:center; padding:0 12px;
+    background:#f2f7f5; color:var(--text-mid); font-size:16px; font-weight:600;
+    border-left:1px solid #e0e0e0; white-space:nowrap; user-select:none;
+  }
+  @media (max-width: 480px) {
+    .email-group { flex-direction:column; }
+    .login-field .email-group input { padding:12px 14px; }
+    .email-suffix { border-left:none; border-top:1px solid #e0e0e0; padding:8px 14px; font-size:16px; }
+  }
+  /* v15 — aviso "continue de onde parou" */
+  .resume-banner {
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    background:#E8F5EE; border:2px solid var(--cor-experiencia); border-radius:14px;
+    padding:14px 18px; margin:0 0 18px; color:var(--text-dark, #333); font-size:19px; line-height:1.4;
+  }
+  .resume-banner button {
+    background:var(--cor-experiencia); color:#fff; border:none; border-radius:10px;
+    padding:10px 18px; font-size:18px; font-weight:700; cursor:pointer; font-family:'UnimedSans', sans-serif;
+  }
+  .resume-banner button:hover { background:var(--cor-eficiencia); }
   .login-btn {
     width:100%; padding:14px; background:var(--cor-experiencia); color:var(--white);
     border:none; border-radius:10px; font-size:22px; font-weight:700;
@@ -775,20 +806,17 @@
 
     <div id="manualFields">
       <div class="login-field">
-        <label>Nome completo</label>
-        <input type="text" id="loginName" placeholder="Seu nome" autocomplete="name">
-      </div>
-      <div class="login-field">
-        <label>E-mail corporativo</label>
-        <input type="email" id="loginEmail" placeholder="seunome@unimedfesp.coop.br" autocomplete="email">
-        <div class="hint">Use seu e-mail de trabalho da Unimed Fesp</div>
-      </div>
-      <div class="login-field">
-        <label>Área / Setor</label>
-        <input type="text" id="loginArea" placeholder="Ex: Tecnologia, RH, Comercial..." autocomplete="organization">
+        <label for="loginEmail">Seu e-mail corporativo</label>
+        <div class="email-group">
+          <input type="text" id="loginEmail" placeholder="nome.sobrenome"
+                 autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false"
+                 onkeydown="if(event.key==='Enter')handleLogin()">
+          <span class="email-suffix">@unimedfesp.coop.br</span>
+        </div>
+        <div class="hint">Digite só o início do seu e-mail, antes do @. Se parar no meio, é só voltar com o mesmo e-mail para continuar de onde parou.</div>
       </div>
     </div>
-    <div class="login-error" id="loginError">Preencha todos os campos com um e-mail corporativo válido.</div>
+    <div class="login-error" id="loginError">Digite o início do seu e-mail corporativo para continuar.</div>
     <button class="login-btn" id="loginBtn" onclick="handleLogin()" ontouchend="handleLogin()">Começar a Jornada</button>
   </div>
 </div>
@@ -1146,6 +1174,10 @@
       <div class="faq-a">Nesta versão, cada fase pode ser realizada uma vez. Sua pontuação é registrada automaticamente ao concluir todas as 4 fases. Fique atento a futuras edições da Jornada!</div>
     </div>
     <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">Posso parar no meio e continuar depois?<span class="faq-arrow">&#x25BC;</span></button>
+      <div class="faq-a">Sim. Seu progresso é salvo automaticamente a cada resposta. Para continuar, basta entrar de novo com o mesmo e-mail — você volta exatamente para a fase e o desafio onde parou, com os pontos que já conquistou. O tempo entre uma visita e outra não é contado.</div>
+    </div>
+    <div class="faq-item">
       <button class="faq-q" onclick="toggleFaq(this)">O que acontece quando concluo todas as fases?<span class="faq-arrow">&#x25BC;</span></button>
       <div class="faq-a">Ao completar as 4 fases, seus resultados (pontuação, acertos e tempo) são registrados. Você estará concorrendo aos prêmios da campanha de engajamento estratégico. Os vencedores serão comunicados pelos canais internos da Unimed Fesp.</div>
     </div>
@@ -1155,7 +1187,7 @@
     </div>
     <div class="faq-item">
       <button class="faq-q" onclick="toggleFaq(this)">Quem pode participar da Jornada?<span class="faq-arrow">&#x25BC;</span></button>
-      <div class="faq-a">Todos os colaboradores da Unimed Fesp podem participar. Basta fazer login com seu nome, e-mail corporativo e área de atuação.</div>
+      <div class="faq-a">Todos os colaboradores da Unimed Fesp podem participar. Basta digitar o início do seu e-mail corporativo (a parte antes do @unimedfesp.coop.br) na tela de entrada.</div>
     </div>
     <div class="faq-item">
       <button class="faq-q" onclick="toggleFaq(this)">O que são os direcionadores estratégicos?<span class="faq-arrow">&#x25BC;</span></button>
@@ -1706,16 +1738,167 @@ function applySSOAccount(account) {
   if (ssoBlock) {
     ssoBlock.innerHTML = '<div class="sso-ident"><strong>' + nome + '</strong>' + email + '</div>';
   }
-  // Só a área continua sendo perguntada (o Entra raramente traz esse dado preenchido)
+  // v15: não pedimos mais nome nem área — a identidade da Microsoft basta
   const manual = document.getElementById('manualFields');
-  if (manual) {
-    manual.style.display = 'block';
-    manual.innerHTML = '<div class="login-field"><label>Área / Setor</label>'
-      + '<input type="text" id="loginArea" placeholder="Ex: Tecnologia, RH, Comercial..." autocomplete="organization"></div>';
-  }
+  if (manual) manual.style.display = 'none';
   const startBtn = document.getElementById('loginBtn');
   if (startBtn) startBtn.style.display = 'block';
 }
+
+// ============ v15: IDENTIFICAÇÃO SIMPLIFICADA ============
+// O colaborador digita só o prefixo do e-mail; o domínio @unimedfesp.coop.br é fixo.
+// Normaliza para que "Verônica.Gonçalves" e "veronica.goncalves" sejam a MESMA pessoa
+// (importante para retomar o progresso). Não há checagem de existência — boa-fé.
+function normalizeEmailPrefix(v) {
+  let s = String(v || '').trim().toLowerCase();
+  s = s.split('@')[0];                                   // se colar o e-mail inteiro, fica só o prefixo
+  s = s.normalize('NFD').replace(/[̀-ͯ]/g, ''); // e-mails não têm acento
+  s = s.replace(/\s+/g, '').replace(/[^a-z0-9._+-]/g, '');
+  return s.replace(/^[.\-_]+|[.\-_]+$/g, '');
+}
+// "veronica.goncalves" → "Veronica Goncalves" (usado só para exibição e no registro)
+function nameFromPrefix(prefix) {
+  return prefix.split(/[._+-]+/).filter(p => p && !/^\d+$/.test(p))
+    .map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ') || prefix;
+}
+
+// ============ v15: PROGRESSO SALVO (continuar de onde parou) ============
+// Salva a cada resposta: neste aparelho (instantâneo) + Supabase (tabela jornada_progresso),
+// para que o colaborador possa voltar outro dia — inclusive em outro computador — e continuar.
+const PROGRESS_KEY = e => 'jornada_prog_' + String(e || '').toLowerCase();
+function serializeProgress() {
+  return {
+    v: 1,
+    fs: fs.map(s => ({
+      cur: s.cur, done: s.done,
+      ans: s.ans.map(a => (a && a.confirmed)
+        ? { sel: a.sel, confirmed: true, elapsed: a.elapsed || 0, bonus: !!a.bonus }
+        : null)
+    })),
+    elapsed: globalStart ? Math.max(0, Math.floor((Date.now() - globalStart) / 1000)) : 0,
+    savedAt: new Date().toISOString()
+  };
+}
+function hasAnyProgress() {
+  return fs.some(s => s.done || s.ans.some(a => a && a.confirmed));
+}
+function saveProgress(concluido) {
+  if (!user || !user.email || gameLocked) return;
+  if (!concluido && !hasAnyProgress()) return;
+  const estado = serializeProgress();
+  const row = {
+    email: user.email, estado,
+    pontuacao: totalPts, acertos: totalOk,
+    fases_concluidas: fs.filter(f => f.done).length,
+    concluido: !!concluido, updated_at: estado.savedAt
+  };
+  try { localStorage.setItem(PROGRESS_KEY(user.email), JSON.stringify(row)); } catch {}
+  pushProgress(row);
+}
+// Envia sempre o estado MAIS RECENTE, um envio por vez (evita que um envio antigo
+// chegue depois e sobrescreva um progresso mais novo).
+let _progPending = null, _progPushing = false;
+function pushProgress(row) {
+  if (!SUPABASE_URL.includes('supabase.co') || SUPABASE_URL.includes('SEU-PROJETO')) return;
+  _progPending = row;
+  if (_progPushing) return;
+  _progPushing = true;
+  (async () => {
+    while (_progPending) {
+      const r = _progPending; _progPending = null;
+      try {
+        await fetch(SUPABASE_URL + '/rest/v1/jornada_progresso?on_conflict=email', {
+          method: 'POST', keepalive: true,
+          headers: {
+            'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'resolution=merge-duplicates,return=minimal'
+          },
+          body: JSON.stringify(r)
+        });
+      } catch (e) { console.warn('⚠️ Progresso não sincronizado agora (fica salvo neste aparelho):', e.message); }
+    }
+    _progPushing = false;
+  })();
+}
+function progressRank(row) {
+  const e = row && row.estado;
+  if (!e || !Array.isArray(e.fs)) return -1;
+  return (row.concluido ? 1000 : 0)
+    + e.fs.reduce((n, s) => n + (s.done ? 10 : 0) + (s.ans || []).filter(a => a && a.confirmed).length, 0);
+}
+async function loadProgress(email) {
+  let local = null, remote = null;
+  try { local = JSON.parse(localStorage.getItem(PROGRESS_KEY(email)) || 'null'); } catch {}
+  if (SUPABASE_URL.includes('supabase.co') && !SUPABASE_URL.includes('SEU-PROJETO')) {
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), 8000);
+    try {
+      const r = await fetch(SUPABASE_URL + '/rest/v1/jornada_progresso?email=eq.' + encodeURIComponent(email) + '&select=*&limit=1', {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
+        signal: controller.signal
+      });
+      if (r.ok) { const rows = await r.json(); remote = (rows && rows[0]) || null; }
+    } catch (e) { console.log('⚠️ Progresso remoto indisponível — usando o deste aparelho:', e.message); }
+    finally { clearTimeout(t); }
+  }
+  if (!local) return remote;
+  if (!remote) { pushProgress(local); return local; }          // sincroniza o que só existia aqui
+  const a = progressRank(local), b = progressRank(remote);
+  if (a !== b) { if (a > b) pushProgress(local); return a > b ? local : remote; }
+  return new Date(local.updated_at) > new Date(remote.updated_at) ? local : remote;
+}
+// Reconstrói o estado do game. Pontos são RECALCULADOS a partir das respostas
+// (não confia em totais salvos). Pergunta não confirmada recomeça com cronômetro novo.
+function restoreProgress(e) {
+  if (!e || !Array.isArray(e.fs) || e.fs.length !== fs.length) return null;
+  totalPts = 0; totalOk = 0;
+  e.fs.forEach((src, i) => {
+    const s = fs[i], qs = FASES[i].qs;
+    s.open = false;
+    s.done = !!src.done;
+    s.cur = Math.min(Math.max(parseInt(src.cur, 10) || 0, 0), qs.length - 1);
+    s.ans = (src.ans || []).slice(0, qs.length).map(a => (a && a.confirmed)
+      ? { sel: a.sel, confirmed: true, elapsed: parseInt(a.elapsed, 10) || 0, bonus: !!a.bonus }
+      : undefined);
+    s.score = 0; s.correct = 0;
+    s.ans.forEach((a, qi) => {
+      if (a && a.confirmed && a.sel === qs[qi].c) { const p = 10 + (a.bonus ? 5 : 0); s.score += p; s.correct++; }
+    });
+    totalPts += s.score; totalOk += s.correct;
+  });
+  if (!hasAnyProgress()) return null;
+  updateStatuses(); updateProgress();
+  const fi = fs.findIndex(s => !s.done);
+  return { fi, q: fi >= 0 ? fs[fi].cur : 4, pts: totalPts, elapsed: Math.max(0, parseInt(e.elapsed, 10) || 0), allDone: fi === -1 };
+}
+function showResumeBanner(r) {
+  if (r.allDone) { showCompletion(); return; }   // terminou as 4 fases mas o envio final não chegou
+  const grid = document.getElementById('fasesGrid');
+  if (!grid || document.getElementById('resumeBanner')) return;
+  const b = document.createElement('div');
+  b.id = 'resumeBanner'; b.className = 'resume-banner';
+  b.innerHTML = '<div><strong>Bem-vindo(a) de volta!</strong> Seu progresso está salvo: <b>' + r.pts + ' pts</b>. '
+    + 'Você parou na <b>Fase ' + (r.fi + 1) + ' · Desafio ' + (r.q + 1) + ' de 5</b>.</div>'
+    + '<button onclick="resumeGame()">Continuar de onde parei &rarr;</button>';
+  grid.parentNode.insertBefore(b, grid);
+  showSaveToast('Progresso recuperado — continue de onde parou.', 'success');
+  setTimeout(() => navigateTo('jornada'), 400);
+}
+function resumeGame() {
+  const fi = fs.findIndex(s => !s.done);
+  const b = document.getElementById('resumeBanner'); if (b) b.remove();
+  if (fi < 0) return;
+  if (!fs[fi].open) toggleFase(fi);
+  setTimeout(() => {
+    const c = document.getElementById('fc-' + fi);
+    if (c) window.scrollTo({ top: c.getBoundingClientRect().top + window.pageYOffset - 70, behavior: 'smooth' });
+  }, 150);
+}
+// Guarda também o tempo de jogo ao sair/trocar de aba (o intervalo entre uma visita e outra não conta)
+function _saveOnLeave() { if (user && !gameLocked && hasAnyProgress() && !fs.every(f => f.done)) saveProgress(); }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') _saveOnLeave(); });
+window.addEventListener('pagehide', _saveOnLeave);
 
 // ============ LOGIN ============
 let _loginBusy = false;
@@ -1723,30 +1906,22 @@ async function handleLogin() {
   if (_loginBusy) return;               // evita duplo-disparo (onclick + ontouchend no mobile)
   const errEl = document.getElementById('loginError');
   const sso = window._ssoIdentity || null;   // preenchido quando o login foi via Microsoft
-  const areaEl = document.getElementById('loginArea');
-  const area = areaEl ? areaEl.value.trim() : '';
+  const area = '';                           // v15: área não é mais solicitada
 
   let name, email;
   if (sso) {
     // Identidade VERIFICADA pela Microsoft — não há e-mail digitado para validar
     name = sso.nome; email = sso.email;
-    if (!area) {
-      errEl.textContent = 'Informe sua área / setor para continuar.';
-      errEl.style.display = 'block'; return;
-    }
   } else {
-    name = document.getElementById('loginName').value.trim();
-    email = document.getElementById('loginEmail').value.trim().toLowerCase();
-    // Validação de campos + domínio corporativo (@unimedfesp.coop.br)
-    const emailOk = new RegExp('^[^@\\s]+@' + CORP_DOMAIN.replace(/\./g,'\\.') + '$', 'i').test(email);
-    if (!name || !area || !email) {
-      errEl.textContent = 'Preencha todos os campos para continuar.';
+    // v15: o colaborador digita só o prefixo (ex.: maria.silva); o domínio é fixo.
+    // Sem checagem de existência do e-mail — participação de boa-fé (pedido da cliente).
+    const prefix = normalizeEmailPrefix(document.getElementById('loginEmail').value);
+    if (!prefix) {
+      errEl.textContent = 'Digite o início do seu e-mail corporativo (antes do @) para continuar.';
       errEl.style.display = 'block'; return;
     }
-    if (!emailOk) {
-      errEl.textContent = 'Use seu e-mail corporativo @' + CORP_DOMAIN + ' para participar.';
-      errEl.style.display = 'block'; return;
-    }
+    email = prefix + '@' + CORP_DOMAIN;
+    name = nameFromPrefix(prefix);
   }
   errEl.style.display = 'none';
 
@@ -1769,12 +1944,26 @@ async function handleLogin() {
   const prev = await checkParticipation(email, user.ms_oid);
   if (prev) { gameLocked = true; previousResult = prev; }
 
-  globalStart = Date.now();
+  // v15: retoma o progresso salvo (servidor ou este aparelho) — continua de onde parou
+  let restored = null;
+  if (!gameLocked) {
+    const saved = await loadProgress(email);
+    if (saved && saved.concluido) {
+      // Concluiu, mas o resultado final ainda não chegou ao banco: trata como já participou
+      gameLocked = true;
+      previousResult = { pontuacao: saved.pontuacao, acertos: saved.acertos, tempo_total_s: saved.estado?.elapsed || 0 };
+    } else if (saved && saved.estado) {
+      restored = restoreProgress(saved.estado);
+    }
+  }
+
+  globalStart = Date.now() - ((restored?.elapsed || 0) * 1000);
   document.getElementById('loginOverlay').classList.add('hidden');
   document.getElementById('mainContent').classList.add('visible');
   btn.disabled = false; btn.textContent = btnTxt;
   _loginBusy = false;
 
+  if (restored) { updateScores(); showResumeBanner(restored); }
   applyGameLockUI();
   // Tenta sincronizar registros pendentes ao fazer login
   flushQueue();
@@ -1966,11 +2155,13 @@ function confirmA(fi) {
   stopTimer(fi);
   updateScores();
   renderQ(fi);
+  saveProgress();               // v15: salva a cada resposta
 }
-function nextQ(fi) { fs[fi].cur++; fs[fi].ans[fs[fi].cur] = { start:Date.now() }; renderQ(fi); startTimer(fi); }
+function nextQ(fi) { fs[fi].cur++; fs[fi].ans[fs[fi].cur] = { start:Date.now() }; renderQ(fi); startTimer(fi); saveProgress(); }
 function endFase(fi) {
   fs[fi].done = true; stopTimer(fi); renderQ(fi); updateStatuses(); updateProgress();
   if (fs.every(f=>f.done)) showCompletion();
+  else saveProgress();
 }
 
 function updateStatuses() {
@@ -2030,6 +2221,7 @@ function showCompletion() {
   };
   // Só envia ms_oid quando houver SSO (a coluna precisa existir no Supabase — ver guia)
   if (user?.ms_oid) payload.ms_oid = user.ms_oid;
+  saveProgress(true);          // v15: marca o progresso como concluído
 
   // === SALVAR COM FALLBACK (Supabase → localStorage → auto-sync) ===
   // Guardar payload globalmente para re-sync manual se necessário
