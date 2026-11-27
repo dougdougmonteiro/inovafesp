@@ -8,6 +8,7 @@
 <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
 <meta name="referrer" content="no-referrer">
 <title>Mapa Estratégico 2026-2030 | Inova Fesp</title>
+<!-- v17 (nov/2026): dados lidos e gravados só por funções seguras do banco (cada pessoa acessa apenas o próprio registro) -->
 <!-- v16 (nov/2026): mapa refeito conforme o arquivo oficial do cliente, cartões das fases, animações de rolagem e pente fino de responsividade -->
 <style>
   /* ============ FONTS ============ */
@@ -2178,14 +2179,17 @@ function pushProgress(row) {
     while (_progPending) {
       const r = _progPending; _progPending = null;
       try {
-        await fetch(SUPABASE_URL + '/rest/v1/jornada_progresso?on_conflict=email', {
+        // v17: grava pela função segura do banco (só o próprio e-mail; não altera quem já concluiu)
+        await fetch(SUPABASE_URL + '/rest/v1/rpc/jornada_progresso_salvar', {
           method: 'POST', keepalive: true,
           headers: {
             'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY,
-            'Content-Type': 'application/json',
-            'Prefer': 'resolution=merge-duplicates,return=minimal'
+            'Content-Type': 'application/json'
           },
-          body: JSON.stringify(r)
+          body: JSON.stringify({
+            p_email: r.email, p_estado: r.estado, p_pontuacao: r.pontuacao, p_acertos: r.acertos,
+            p_fases_concluidas: r.fases_concluidas, p_concluido: !!r.concluido
+          })
         });
       } catch (e) { console.warn('⚠️ Progresso não sincronizado agora (fica salvo neste aparelho):', e.message); }
     }
@@ -2205,8 +2209,11 @@ async function loadProgress(email) {
     const controller = new AbortController();
     const t = setTimeout(() => controller.abort(), 8000);
     try {
-      const r = await fetch(SUPABASE_URL + '/rest/v1/jornada_progresso?email=eq.' + encodeURIComponent(email) + '&select=*&limit=1', {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
+      // v17: lê pela função segura do banco (devolve só o registro deste e-mail)
+      const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/jornada_progresso_obter', {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_email: email }),
         signal: controller.signal
       });
       if (r.ok) { const rows = await r.json(); remote = (rows && rows[0]) || null; }
@@ -2365,13 +2372,12 @@ async function checkParticipation(email, msOid) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
   try {
-    // Com SSO consulta pelo ID verificado da Microsoft (mais confiável que o e-mail)
-    const filtro = msOid ? 'ms_oid=eq.' + encodeURIComponent(msOid)
-                         : 'email=eq.' + encodeURIComponent(email);
-    const url = SUPABASE_URL + '/rest/v1/jornada_estrategia?' + filtro
-      + '&select=pontuacao,acertos,tempo_total_s,created_at&order=created_at.asc&limit=1';
-    const r = await fetch(url, {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
+    // v17: consulta pela função segura do banco — devolve só o resumo deste e-mail.
+    // (com SSO o e-mail vem verificado pela Microsoft, então a consulta por e-mail vale para os dois casos)
+    const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/jornada_participacao', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_email: email }),
       signal: controller.signal
     });
     clearTimeout(timeout);
